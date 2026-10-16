@@ -1,36 +1,37 @@
-    a = String(a).split(".").map(Number); b = String(b).split(".").map(Number);
-    for (var i = 0; i < Math.max(a.length, b.length); i++) {
-      var x = a[i] || 0, y = b[i] || 0;
-      if (x !== y) return x > y;
-    }
-    return false;
-  }
-
-  document.getElementById("check").onclick = function () {
-    msg.textContent = "در حال بررسی...";
-    dl.style.display = "none";
-    fetch("version.json?t=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (j) {
-        if (newer(j.version, APP_VERSION)) {
-          msg.textContent = "نسخه جدید (" + j.version + ") موجوده." + (j.notes ? " " + j.notes : "");
-          if (j.apk) { dl.href = j.apk; dl.style.display = "block"; }
-        } else {
-          msg.textContent = "شما آخرین نسخه رو دارید.";
-        }
-      })
-      .catch(function () { msg.textContent = "بررسی انجام نشد. اتصال اینترنت رو چک کن."; });
-  };
-
-  document.getElementById("refresh").onclick = function () {
-    msg.textContent = "در حال تازه‌سازی...";
-    var jobs = [];
-    if ("serviceWorker" in navigator)
-      jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
-    if (window.caches)
-      jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
-    Promise.all(jobs).catch(function () {}).then(function () { location.reload(); });
-  };
-</script>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>درباره برنامه</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1b1b; --muted:#666; --card:#f4f4f5; --accent:#b3203a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121212; --fg:#eee; --muted:#aaa; --card:#1e1e20; --accent:#e0566f; } }
+  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg); font-family:system-ui,Tahoma,sans-serif; line-height:1.8; }
+  .wrap { max-width:480px; margin:0 auto; }
+  h1 { font-size:1.4rem; margin:0 0 16px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:16px; }
+  .row { display:flex; justify-content:space-between; }
+  .muted { color:var(--muted); }
+  button, a.btn { display:block; width:100%; box-sizing:border-box; text-align:center; text-decoration:none; border:0; border-radius:12px; padding:12px; margin-top:10px; font:inherit; background:var(--accent); color:#fff; cursor:pointer; }
+  button.alt { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+  #msg { margin-top:12px; min-height:1.5em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="./" style="color:var(--accent);text-decoration:none">→ بازگشت به برنامه</a>
+  <h1>درباره برنامه</h1>
+  <div class="card">
+    <div class="row"><span>نام برنامه</span><b>میوه‌یار</b></div>
+    <div class="row"><span>نسخه</span><b id="ver" dir="ltr"></b></div>
+  </div>
+  <div class="card">
+    <button id="check">بررسی آپدیت</button>
+    <button id="refresh" class="alt">تازه‌سازی محتوای برنامه</button>
+    <div id="msg" role="status"></div>
+    <a id="dl" class="btn" style="display:none">دانلود نسخه جدید</a>
+  </div>
+</div>
+<script>
+  // هر بار که نسخه جدید می‌دی، این عدد و version.json رو با هم عوض کن
