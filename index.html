@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0b1d46">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>میوه‌یار</title>
+<style>
+:root{--blue:#3981f5;--blue2:#7758f6;--blue3:#e4eefe;--cyan:#47bef5;--text:#2b2c3d;--muted:#78859a;--card:#ffffff;--border:#d2e0f6;--green:#16a693;--red:#6947ef;--orange:#0ca3e9;--shadow:0 10px 30px rgba(57,129,245,.12)}
+*{box-sizing:border-box}
+body{margin:0;font-family:Vazirmatn,"IRANSans",Shabnam,Tahoma,Arial,sans-serif;background:linear-gradient(135deg,#edf9fe,#f2effe 60%,#dbf2fd);color:var(--text)}
+button,input,select{font-family:inherit}button{cursor:pointer}
+.app{max-width:1500px;margin:auto;min-height:100vh}
+.header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:blur(15px);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;color:#ffffff;font-size:calc(24px*var(--fs,1));background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.brand h1{margin:0;font-size:calc(19px*var(--fs,1))}.brand small{color:var(--muted);font-size:calc(12px*var(--fs,1))}
+.hact{display:flex;gap:8px}
+.content{padding:22px}
+.tab{display:none}.tab.active{display:block}
+.page-title h2{margin:0 0 5px;font-size:calc(22px*var(--fs,1))}.page-title p{margin:0 0 18px;color:var(--muted);font-size:calc(14px*var(--fs,1))}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:20px;margin-bottom:18px}
+.card-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 15px}
+.card-title h3{margin:0;font-size:calc(16px*var(--fs,1))}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px}
+.stat{background:linear-gradient(135deg,#ffffff,#e4eefe);border:1px solid var(--border);border-radius:18px;padding:19px;box-shadow:var(--shadow);border-right:5px solid var(--blue)}
+.stat.green{border-right-color:var(--green);background:linear-gradient(135deg,#ffffff,#e4f8f5)}.stat.red{border-right-color:var(--red);background:linear-gradient(135deg,#ffffff,#ece7fe)}.stat.orange{border-right-color:var(--orange);background:linear-gradient(135deg,#ffffff,#d1effd)}
+.stat .ic{font-size:calc(24px*var(--fs,1));margin-bottom:8px}
+.stat strong{display:block;font-size:calc(20px*var(--fs,1));margin-bottom:5px}.stat span{color:var(--muted);font-size:calc(13px*var(--fs,1))}
+.ltr{direction:ltr;text-align:right}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-size:calc(13px*var(--fs,1));color:#3a598a;font-weight:bold}
