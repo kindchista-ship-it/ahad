@@ -35,3 +35,44 @@
 </div>
 <script>
   // هر بار که نسخه جدید می‌دی، این عدد و version.json رو با هم عوض کن
+  var APP_VERSION = "1.0.0.1";
+  document.getElementById("ver").textContent = APP_VERSION;
+  var msg = document.getElementById("msg"), dl = document.getElementById("dl");
+
+  function newer(a, b) { // آیا a از b جدیدتره؟
+    a = String(a).split(".").map(Number); b = String(b).split(".").map(Number);
+    for (var i = 0; i < Math.max(a.length, b.length); i++) {
+      var x = a[i] || 0, y = b[i] || 0;
+      if (x !== y) return x > y;
+    }
+    return false;
+  }
+
+  document.getElementById("check").onclick = function () {
+    msg.textContent = "در حال بررسی...";
+    dl.style.display = "none";
+    fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (j) {
+        if (newer(j.version, APP_VERSION)) {
+          msg.textContent = "نسخه جدید (" + j.version + ") موجوده." + (j.notes ? " " + j.notes : "");
+          if (j.apk) { dl.href = j.apk; dl.style.display = "block"; }
+        } else {
+          msg.textContent = "شما آخرین نسخه رو دارید.";
+        }
+      })
+      .catch(function () { msg.textContent = "بررسی انجام نشد. اتصال اینترنت رو چک کن."; });
+  };
+
+  document.getElementById("refresh").onclick = function () {
+    msg.textContent = "در حال تازه‌سازی...";
+    var jobs = [];
+    if ("serviceWorker" in navigator)
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); }));
+    if (window.caches)
+      jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+    Promise.all(jobs).catch(function () {}).then(function () { location.reload(); });
+  };
+</script>
+</body>
+</html>
