@@ -129,6 +129,32 @@
       show();
     }
   });
-
+/* ---------- انیمیشن‌های حرفه‌ای و حس اپلیکیشن ---------- */
+var cssAnim = document.createElement('style');
+cssAnim.textContent =
+  'html{scroll-behavior:smooth}' +
+  
+  /* انیمیشن باز شدن پنجره‌ها (فنری) */
+  '@keyframes proModalPop{0%{opacity:0;transform:scale(0.85) translateY(20px)}100%{opacity:1;transform:scale(1) translateY(0)}}' +
+  '.modal.show .modal-box{animation:proModalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards!important}' +
+  
+  /* انیمیشن عوض شدن تب‌ها (محو و بالا آمدن) */
+  '@keyframes proTabFade{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}' +
+  '.tab.active{animation:proTabFade 0.3s ease-out forwards!important}' +
+  
+  /* افکت لمس روی دکمه‌ها و کارت‌ها */
+  '.btn:active, .mi:active, .stat:active, .dcard:active, .drow:active{transform:scale(0.94)!important;transition:transform 0.05s!important}' +
+  '.btn, .mi, .stat, .dcard, .drow{transition:transform 0.15s ease-out, box-shadow 0.2s ease-out}' +
+  
+  /* افکت شناور شدن کارت‌ها (فقط برای دسکتاپ و هاور) */
+  '@media(hover:hover){.stat:hover, .dcard:hover, .drow:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(0,0,0,0.15)}}' +
+  
+  /* انیمیشن پیام‌های پایین صفحه (Toast) */
+  '@keyframes proToastUp{0%{opacity:0;transform:translateY(30px) scale(0.9)}100%{opacity:1;transform:translateY(0) scale(1)}}' +
+  '.toast.show{animation:proToastUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards!important;transition:none!important}' +
+  
+  /* نرم کردن تغییر صفحات */
+  '#main, .content { transform: translateZ(0); will-change: transform, opacity; }';
+document.head.appendChild(cssAnim);
   console.log('[Patch] v1 ready ✅');
 })();
