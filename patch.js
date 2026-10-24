@@ -195,5 +195,126 @@ window.addEventListener('beforeunload', function() {
     }
   } catch(e) {}
 });
+   /* ---------- ۱. جست‌وجوی فوق‌هوشمند (فارسی‌فهم) ---------- */
+if (typeof window.gsSearch === 'function') {
+  var originalGsSearch = window.gsSearch;
+  window.gsSearch = function(raw) {
+    if (!raw) return originalGsSearch(raw);
+    
+    // تابع نرمال‌سازی متن (یکسان‌سازی ی/ک، حذف نیم‌فاصله و اعراب)
+    var normalize = function(str) {
+      return String(str || '')
+        .replace(/ي/g, 'ی')
+        .replace(/ك/g, 'ک')
+        .replace(/[\u064B-\u065F]/g, '') // حذف اعراب
+        .replace(/[\u200c\u200f\u200e]/g, ' ') // تبدیل نیم‌فاصله به فاصله
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+        .trim();
+    };
+    
+    var normRaw = normalize(raw);
+    if (!normRaw) return originalGsSearch(raw);
+    
+    var toks = normRaw.split(' ');
+    var hit = function(h) {
+      var t = normalize(h);
+      return toks.every(function(k) { return t.indexOf(k) > -1; });
+    };
+    
+    // کپی از منطق جست‌وجوی اصلی برای اعمال نرمال‌سازی
+    var G = {"🧾 فاکتورها": [], "🛒 خریدها": [], "🤝 طلب‌ها": [], "📅 روزها": []};
+    
+    try {
+      // ۱. فاکتورها
+      var P = new Map();
+      Object.values(window.db.invoices || {}).sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(x) {
+        var itemNames = (x.items || []).map(function(i){return i.name;}).join(' ');
+        if (!hit([x.person, x.date, x.total, x.settled ? "تسویه شد" : "", itemNames].join(" "))) return;
+        var k = typeof pkey === 'function' ? pkey(x.person) : x.person;
+        var o = P.get(k) || {person:x.person, open:0, done:0, sum:0};
+        if (x.settled) o.done++; else o.open++;
+        o.sum += Number(x.total) || 0;
+        P.set(k, o);
+      });
+      P.forEach(function(o, k) {
+        G["🧾 فاکتورها"].push({ a:"person", id:k, t:o.person, s:[o.open ? fmt(o.open)+" باز" : "", o.done ? fmt(o.done)+" تسویه‌شده" : ""].filter(Boolean).join(" • ")+" • "+money(o.sum) });
+      });
+      
+      // ۲. خریدها
+      Object.values(window.db.shopping || {}).sort(function(a,b){ return b.date.localeCompare(a.date); }).forEach(function(x) {
+        var itemNames = (x.items || []).map(function(i){return i.name+" "+(i.seller||"");}).join(' ');
+        if (hit([x.date, x.total, itemNames].join(" "))) {
+          G["🛒 خریدها"].push({ a:"shop", id:x.id, t:"خرید "+fa(x.date), s:money(x.total)+" • "+ (x.items||[]).slice(0,3).map(function(i){return i.name;}).join("، ") });
+        }
+      });
+      
+      // ۳. طلب‌ها
+      Object.values(window.db.debts || {}).forEach(function(x) {
+        if (hit([x.name, x.amount, x.date, x.due, x.settled ? "تسویه" : "باز"].join(" "))) {
+          G["🤝 طلب‌ها"].push({ a:"debt", id:x.id, t:x.name, s:money(x.amount)+(x.settled ? " • تسویه شده" : " • باز") });
+        }
+      });
+      
+      // ۴. روزها
+      if (typeof dailyDates === 'function' && typeof daily === 'function') {
+        dailyDates().sort(function(a,b){ return b.localeCompare(a); }).forEach(function(d) {
+          var x = daily(d);
+          if (hit([d, x.buy, x.sale].join(" "))) {
+            G["📅 روزها"].push({ a:"day", id:d, t:"روز "+fa(d), s:"خرید "+money(x.buy)+" • فروش "+money(x.sale) });
+          }
+        });
+      }
+    } catch(e) {
+      return originalGsSearch(raw); // در صورت خطا، به حالت عادی برگرد
+    }
+    return G;
+  };
+}
+
+/* ---------- ۲. دکمه شناور (FAB) برای دسترسی سریع ---------- */
+var cssFab = document.createElement('style');
+cssFab.textContent =
+  '#quickFab{position:fixed;bottom:calc(85px + env(safe-area-inset-bottom,0px));left:20px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#3981f5,#7758f6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 8px 25px rgba(57,129,245,.5);z-index:900;cursor:pointer;transition:transform .2s;border:none}' +
+  '#quickFab:active{transform:scale(.9)}' +
+  '#quickMenu{position:fixed;bottom:calc(150px + env(safe-area-inset-bottom,0px));left:20px;display:flex;flex-direction:column;gap:10px;z-index:899;opacity:0;pointer-events:none;transform:translateY(20px);transition:.25s}' +
+  '#quickMenu.show{opacity:1;pointer-events:auto;transform:translateY(0)}' +
+  '.q-item{display:flex;align-items:center;gap:8px;background:#fff;color:#333;padding:10px 16px;border-radius:30px;font-size:14px;font-weight:bold;box-shadow:0 4px 15px rgba(0,0,0,.15);cursor:pointer;text-decoration:none;border:1px solid #eee}' +
+  'body.glass3 .q-item{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3);backdrop-filter:blur(10px)}' +
+  '@keyframes qPop{0%{transform:scale(0)}100%{transform:scale(1)}}';
+document.head.appendChild(cssFab);
+
+var fab = document.createElement('button');
+fab.id = 'quickFab';
+fab.innerHTML = '+';
+
+var qMenu = document.createElement('div');
+qMenu.id = 'quickMenu';
+qMenu.innerHTML = 
+  '<div class="q-item" data-tab="shopping"><span>🛒</span> ثبت خرید جدید</div>' +
+  '<div class="q-item" data-tab="daily"><span>📅</span> ثبت فروش روز</div>' +
+  '<div class="q-item" data-tab="invoices"><span>🧾</span> فاکتور جدید</div>';
+
+document.body.appendChild(fab);
+document.body.appendChild(qMenu);
+
+fab.addEventListener('click', function() {
+  qMenu.classList.toggle('show');
+  fab.style.transform = qMenu.classList.contains('show') ? 'rotate(45deg)' : 'none';
+});
+
+qMenu.querySelectorAll('.q-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    var tabId = this.getAttribute('data-tab');
+    qMenu.classList.remove('show');
+    fab.style.transform = 'none';
+    if (typeof window.show === 'function') window.show(tabId);
+    if (typeof A !== 'undefined' && A[tabId] === undefined) {
+       // اگر تب باز شد، حالا دکمه افزودن کالا/ریست را هم شبیه‌سازی کنیم
+       if(tabId === 'shopping' && typeof resetShop === 'function') resetShop();
+       if(tabId === 'invoices' && typeof resetInv === 'function') resetInv();
+    }
+  });
+});
   console.log('[Patch] v1 ready ✅');
 })();
