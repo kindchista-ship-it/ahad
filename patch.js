@@ -156,5 +156,44 @@ cssAnim.textContent =
   /* نرم کردن تغییر صفحات */
   '#main, .content { transform: translateZ(0); will-change: transform, opacity; }';
 document.head.appendChild(cssAnim);
+   /* ---------- سیستم نجات داده‌ها (نسخه پشتیبان نامرئی) ---------- */
+var SHADOW_KEY = 'miveyar_shadow_db';
+var MAIN_KEY = 'roohollah_store_db_v2';
+
+// ۱. بازیابی خودکار در صورت پاک شدن یا خراب شدن داده اصلی
+try {
+  var mainData = localStorage.getItem(MAIN_KEY);
+  var shadowData = localStorage.getItem(SHADOW_KEY);
+  
+  // اگر دیتای اصلی نیست یا خیلی کوچیکه (خراب شده)، ولی دیتای سایه داریم
+  if ((!mainData || mainData.length < 20) && shadowData && shadowData.length > 20) {
+    localStorage.setItem(MAIN_KEY, shadowData);
+    setTimeout(function() {
+      if (typeof toast === 'function') {
+        toast('اطلاعات شما به طور خودکار بازیابی شد ✅');
+      }
+    }, 2000);
+  }
+} catch(e) {}
+
+// ۲. ذخیره خودکار در سایه (هر ۳۰ ثانیه)
+setInterval(function() {
+  try {
+    var mainData = localStorage.getItem(MAIN_KEY);
+    if (mainData && mainData.length > 20) {
+      localStorage.setItem(SHADOW_KEY, mainData);
+    }
+  } catch(e) {}
+}, 30000);
+
+// ۳. ذخیره سایه زمان بستن یا مینیمایز شدن برنامه
+window.addEventListener('beforeunload', function() {
+  try {
+    var mainData = localStorage.getItem(MAIN_KEY);
+    if (mainData && mainData.length > 20) {
+      localStorage.setItem(SHADOW_KEY, mainData);
+    }
+  } catch(e) {}
+});
   console.log('[Patch] v1 ready ✅');
 })();
